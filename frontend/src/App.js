@@ -9,11 +9,12 @@ const App = () => {
 
   const [currentAccount, setCurrentAccount] = useState("");
   const [nbWaves, setNbWaves] = useState("");
+  const [ethPrice, setEthPrice] = useState("");
   const [message, setMessage] = useState("");
   const [allWaves, setAllWaves] = useState([]);
 
 
-  const contractAddress = "0xAB11Fd99a5d4E1E927cf36a04b977f3a2366dD93";
+  const contractAddress = "0x348fF6503881eb7F90174C8dB904e3B738a8880f";
   const contractABI = abi.abi;
 
   const constructor = () => { getWaves();}
@@ -121,9 +122,12 @@ const getWaves = async() => {
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        let count = await wavePortalContract.getLatestPrice();
+        let count = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count 2 ...", count.toNumber());
         setNbWaves(count.toNumber())
+
+        let price = await wavePortalContract.getLatestPrice();
+        setEthPrice(price.toNumber()/100000000)
       
       }
     }
@@ -173,7 +177,7 @@ const wave = async () => {
     <div className="mainContainer">
       <div className="dataContainer">
         <div className="header">
-        👋 Hey there!
+        👋 Hey there! 1
         </div>
 
         <div className="bio">
@@ -205,6 +209,9 @@ const wave = async () => {
           </button>
         <div className="bio">
           There are currently {nbWaves} waves !
+        </div>
+        <div className="bio">
+          ETH price is {ethPrice} USD !
         </div>
 
 {allWaves.map((wave, index) => {

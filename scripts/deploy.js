@@ -1,5 +1,5 @@
 const main = async () => {
-  const clContractFactory = await hre.ethers.getContractFactory("PriceConsumerV3");
+  const clContractFactory = await hre.ethers.getContractFactory("WavePortal");
   const clContract = await clContractFactory.deploy({
     value: hre.ethers.utils.parseEther("0.001"),
   });
