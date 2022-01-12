@@ -177,7 +177,7 @@ const wave = async () => {
     <div className="mainContainer">
       <div className="dataContainer">
         <div className="header">
-        👋 Hey there! 1
+        👋 Hey there! 2
         </div>
 
         <div className="bio">
