@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { ethers } from "ethers";
 import abi from "./utils/WavePortal.json";
+const axios = require('axios');
 
 
 const App = () => {
@@ -12,16 +13,62 @@ const App = () => {
   const [ethPrice, setEthPrice] = useState("");
   const [message, setMessage] = useState("");
   const [allWaves, setAllWaves] = useState([]);
+  const [accountBalance, setAccountBalance] = useState([]);
+  const [usdAccountBalance, setUsdAccountBalance] = useState([]);
 
-
-  const contractAddress = "0x348fF6503881eb7F90174C8dB904e3B738a8880f";
+  const contractAddress = "0xC0Ee3EF5d89320e79f80381eDa20859e06ebC1aA";
   const contractABI = abi.abi;
 
-  const constructor = () => { getWaves();}
+  const constructor = () => { }
 
-    const handleChange = e => {
+  const handleChange = e => {
     setMessage(e.target.value)
   }
+
+
+  const getAccountBalance = async () => {
+    try {
+      const res = await axios({
+        method: 'get',
+        url: 'https://api-rinkeby.etherscan.io/api?module=account&action=balance&address=0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B&tag=latest&apikey=Y6S7UXIDUI7GMIB73JSBDC97ENH3YIUAR5',
+        data: {
+          module: 'account',
+          action: 'balance',
+          address: '0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B',
+          tag: 'latest',
+          apikey: '{API_KEY}'
+        }
+      });
+      var balance = res.data.result / 1000000000000000000
+      setAccountBalance(Math.round(balance * 1000) / 1000)
+
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
+
+  const getEthPrice = async () => {
+
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        let price = await wavePortalContract.getLatestPrice();
+        setEthPrice(price.toNumber() / 100000000)
+        console.log("Eth Price: ", ethPrice);
+
+      }
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
 
   /*
    * Create a method that gets all waves from your contract
@@ -112,9 +159,9 @@ const App = () => {
     }
   }
 
-const getWaves = async() => {
+  const getWaves = async () => {
 
- try {
+    try {
       const { ethereum } = window;
 
       if (ethereum) {
@@ -127,17 +174,17 @@ const getWaves = async() => {
         setNbWaves(count.toNumber())
 
         let price = await wavePortalContract.getLatestPrice();
-        setEthPrice(price.toNumber()/100000000)
-      
+        setEthPrice(price.toNumber() / 100000000)
+
       }
     }
-    catch(error) {
+    catch (error) {
       console.log(error)
     }
-}
+  }
 
 
-const wave = async () => {
+  const wave = async () => {
     try {
       const { ethereum } = window;
 
@@ -170,26 +217,24 @@ const wave = async () => {
 
   useEffect(() => {
     checkIfWalletIsConnected();
-
+    getEthPrice();
+    getAccountBalance();
+    setUsdAccountBalance(Math.round(ethPrice * accountBalance * 100) / 100)
   }, [])
 
   return (
     <div className="mainContainer">
       <div className="dataContainer">
         <div className="header">
-        👋 Hey there! 3
-        </div>
-
-        <div className="bio">
-          Connect your Ethereum wallet and wave at me!
+          👋 Hey there! It seems you are the owner of {accountBalance} ETH !
         </div>
 
         <form className="bio">
-        <label>
-        Message:{" "}
-          <input type="text" value={message} onChange={handleChange} />
-        </label>
-      </form>
+          <label>
+            Send me a Message:{" "}
+            <input type="text" value={message} onChange={handleChange} />
+          </label>
+        </form>
 
         <button className="waveButton" onClick={wave}>
           Wave at Me
@@ -204,17 +249,14 @@ const wave = async () => {
           </button>
         )}
 
-<button className="waveButton" onClick=   {getWaves}>
-            Get Waves
+        <button className="waveButton" onClick={getWaves}>
+          Get Waves
           </button>
         <div className="bio">
           There are currently {nbWaves} waves !
         </div>
-        <div className="bio">
-          ETH price is {ethPrice} USD !
-        </div>
 
-{allWaves.map((wave, index) => {
+        {allWaves.map((wave, index) => {
           return (
             <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
               <div>Address: {wave.address}</div>
@@ -223,6 +265,17 @@ const wave = async () => {
             </div>)
         })}
 
+      </div>
+
+      <div className="rightContainer">
+        <div className="bio">
+          Balance ${usdAccountBalance}
+        </div>
+
+        <div className="bio small-font">
+          ETH price is {ethPrice} USD !
+        </div>
+        
       </div>
     </div>
   );
